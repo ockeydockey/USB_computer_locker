@@ -19,6 +19,8 @@ void setup() {
   os = LINUX;
   //  }
   lockState = 0;
+  Serial.begin(9600);    // This might move to be pin activated
+  delay(10);
   Keyboard.begin();
   delay(1000);
 
@@ -80,6 +82,85 @@ void lock() {
   Keyboard.releaseAll();
 }
 
+long menuPrompt(String prompt, int lowerLimit, int upperLimit) {
+  long input = 0;
+  do {
+    Serial.print(prompt);
+    Serial.print("> ");
+    input = Serial.parseInt();
+  } while (input < lowerLimit || input > upperLimit);
+
+  return input;
+}
+
+void displayDashes() {
+  Serial.println(F("----------------------------------------------------------------------"));
+}
+
+String printOS(int input) {
+  switch (input) {
+    case WINDOWS:
+      Serial.print("Windows Vista or higher");
+      break;
+    case LINUX:
+      Serial.print("Linux with GNOME/KDE/Cinnamon/Mate/Unity");
+      break;
+    case OSX:
+      Serial.print("Apple OS X");
+      break;
+  }
+}
+
+void changeOS() {
+  displayDashes();
+  Serial.println("===[ Change OS ]===");
+  Serial.println(" Current OS:");
+  Serial.print("   [");
+  printOS(os);
+  Serial.println(" ]");
+  Serial.print("  1) ");
+  Serial.println(printOS(WINDOWS));
+  Serial.print("  2) ");
+  Serial.println(printOS(LINUX));
+  Serial.print("  3) ");
+  Serial.println(printOS(OSX));
+
+  os = (int)menuPrompt("ChangeOS", 1, 3);
+//  EEPROM.set(0x0, os);
+}
+
+void changePassword() {
+  Serial.println("===[ Change Password ]===");
+  Serial.println("....Place holder....");
+}
+
+void mainMenu() {
+  while (true) {
+    Serial.println(F("===[ USB Wireless Computer Locker configuration menu ]==="));
+    displayDashes();
+    Serial.println(F("Currently configured to lock/unlock a computer with the following OS:"));
+    Serial.print("  [ ");
+    printOS(os);
+    Serial.println(" ]");
+    displayDashes();
+    Serial.println("  1) Change OS");
+    Serial.println("  2) Change password");
+    Serial.println("  3) Close serial connection");
+    while (!Serial.available());  // Wait for input
+    switch (menuPrompt("MainMenu", 1, 3)) {
+      case 1:
+        changeOS();
+        break;
+      case 2:
+        changePassword();
+        break;
+      case 3:
+        return;
+        break;
+    }
+  }
+}
+
 void loop() {
   //  byte newState;
   //
@@ -103,4 +184,8 @@ void loop() {
   //        break;
   //    }
   //  }
+  if (Serial.available() > 0) {
+    while (Serial.read());  // flush the buffer before outputting menu
+    mainMenu();
+  }
 }
