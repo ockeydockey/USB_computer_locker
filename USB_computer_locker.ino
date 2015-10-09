@@ -11,7 +11,7 @@
 #define SPEAKER 4
 
 byte lockState;
-int os;
+byte os;
 
 void setup() {
   //  EEPROM.get(0x0, os);
@@ -86,10 +86,14 @@ int menuPrompt(char prompt[], int lowerLimit, int upperLimit) {
   int input = 0;
   do {
     Serial.print(prompt);
-    Serial.print("> ");
+    Serial.print(F("> "));
+    while (Serial.available() <= 0);
     input = (int)Serial.parseInt();
   } while (input < lowerLimit || input > upperLimit);
-
+  while(Serial.available()) {
+    Serial.read();
+  }
+  Serial.println(input, DEC);
   return input;
 }
 
@@ -97,16 +101,16 @@ void displayDashes() {
   Serial.println(F("----------------------------------------------------------------------"));
 }
 
-String printOS(int input) {
+String printOS(byte input) {
   switch (input) {
     case WINDOWS:
-      Serial.print("Windows Vista or higher");
+      Serial.print(F("Windows Vista or higher"));
       break;
     case LINUX:
-      Serial.print("Linux with GNOME/KDE/Cinnamon/Mate/Unity");
+      Serial.print(F("Linux with GNOME/KDE/Cinnamon/Mate/Unity"));
       break;
     case OSX:
-      Serial.print("Apple OS X");
+      Serial.print(F("Apple OS X"));
       break;
   }
 }
@@ -115,28 +119,31 @@ void changeOS() {
   displayDashes();
   Serial.println("===[ Change OS ]===");
   Serial.println(" Current OS:");
-  Serial.print("   [");
+  Serial.print(F("   ["));
   printOS(os);
-  Serial.println(" ]");
-  Serial.print("  1) ");
-  Serial.println(printOS(WINDOWS));
-  Serial.print("  2) ");
-  Serial.println(printOS(LINUX));
-  Serial.print("  3) ");
-  Serial.println(printOS(OSX));
+  Serial.println(F(" ]"));
+  Serial.print(F("  1) "));
+  printOS(WINDOWS);
+  Serial.println();
+  Serial.print(F("  2) "));
+  printOS(LINUX);
+  Serial.println();
+  Serial.print(F("  3) "));
+  printOS(OSX);
+  Serial.println();
 
-  os = (int)menuPrompt("ChangeOS", 1, 3);
-//  EEPROM.set(0x0, os);
+  os = (byte)menuPrompt("ChangeOS", 1, 3);
+//  EEPROM.update(0x0, os);
 }
 
 void changePassword() {
-  Serial.println("===[ Change Password ]===");
-  Serial.println("....Place holder....");
+  Serial.println(F("===[ Change Password ]==="));
+  Serial.println(F("....Place holder...."));
 }
 
 void mainMenu() {
   bool finished = false;
-  while (true) {
+  while (!finished) {
     Serial.println(F("===[ USB Wireless Computer Locker configuration menu ]==="));
     displayDashes();
     Serial.println(F("Currently configured to lock/unlock a computer with the following OS:"));
@@ -144,10 +151,9 @@ void mainMenu() {
     printOS(os);
     Serial.println(" ]");
     displayDashes();
-    Serial.println("  1) Change OS");
-    Serial.println("  2) Change password");
-    Serial.println("  3) Close serial connection");
-//    while (!Serial.available());  // Wait for input
+    Serial.println(F("  1) Change OS"));
+    Serial.println(F("  2) Change password"));
+    Serial.println(F("  3) Close serial connection"));
     switch (menuPrompt("MainMenu", 1, 3)) {
       case 1:
         changeOS();
@@ -160,7 +166,7 @@ void mainMenu() {
         break;
     }
   }
-  Serial.println("Serial session [ CLOSED ]");
+  Serial.println(F("Serial session [ CLOSED ]"));
 }
 
 void loop() {
