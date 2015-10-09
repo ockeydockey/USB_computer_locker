@@ -82,12 +82,12 @@ void lock() {
   Keyboard.releaseAll();
 }
 
-long menuPrompt(String prompt, int lowerLimit, int upperLimit) {
-  long input = 0;
+int menuPrompt(char prompt[], int lowerLimit, int upperLimit) {
+  int input = 0;
   do {
     Serial.print(prompt);
     Serial.print("> ");
-    input = Serial.parseInt();
+    input = (int)Serial.parseInt();
   } while (input < lowerLimit || input > upperLimit);
 
   return input;
@@ -135,6 +135,7 @@ void changePassword() {
 }
 
 void mainMenu() {
+  bool finished = false;
   while (true) {
     Serial.println(F("===[ USB Wireless Computer Locker configuration menu ]==="));
     displayDashes();
@@ -146,7 +147,7 @@ void mainMenu() {
     Serial.println("  1) Change OS");
     Serial.println("  2) Change password");
     Serial.println("  3) Close serial connection");
-    while (!Serial.available());  // Wait for input
+//    while (!Serial.available());  // Wait for input
     switch (menuPrompt("MainMenu", 1, 3)) {
       case 1:
         changeOS();
@@ -155,10 +156,11 @@ void mainMenu() {
         changePassword();
         break;
       case 3:
-        return;
+        finished = true;
         break;
     }
   }
+  Serial.println("Serial session [ CLOSED ]");
 }
 
 void loop() {
@@ -185,7 +187,7 @@ void loop() {
   //    }
   //  }
   if (Serial.available() > 0) {
-    while (Serial.read());  // flush the buffer before outputting menu
+    while (Serial.read() != '\n');  // flush the buffer before outputting menu
     mainMenu();
   }
 }
